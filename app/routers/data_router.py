@@ -4,7 +4,7 @@ from app.services.profiler import Profiler
 from app.services.visualizer import Visualizer
 from app.services.ai_summarizer import AISummarizer
 from app.services.file_manager import FileManager
-from app.schemas.schemas import ProfileResponse, SummaryResponse, VisualizationResponse
+from app.schemas.schemas import ProfileResponse, SummaryResponse, VisualizationResponse, InfoResponse
 import os
 
 router = APIRouter()
@@ -37,6 +37,19 @@ def get_profile(file_id: str):
     dataset = get_dataset(file_id)
     profiler = Profiler(dataset)
     return profiler.get_profile()
+
+
+@router.get("/info/{file_id}", response_model=InfoResponse)
+def get_info(file_id: str, head_rows: int = 5):
+    try:
+        dataset: Dataset = get_dataset(file_id)
+        return dataset.summary(head_rows=head_rows)
+
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/visualize/{file_id}", response_model=VisualizationResponse)
 def visualize(file_id: str, chart_type: str, column: str = None):

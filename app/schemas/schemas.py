@@ -12,6 +12,11 @@ class ProfileResponse(BaseModel):
 class SummaryResponse(BaseModel):
     summary: str
 
+class InfoResponse(BaseModel):
+    head: List[Dict[str, Any]]
+    describe: Dict[str, Dict[str, Dict[str, Any]]]
+    info: Dict[str, Any]
+    
 class VisualizationRequest(BaseModel):
     column: str
     chart_type: str # histogram, bar

@@ -1,48 +1,81 @@
 import pandas as pd
 import io
 
+
 class Dataset:
     """
-    Class responsible for loading and managing the dataset.
+    Supports CSV, TSV, and Excel files.
     """
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.df = None
+
+    def __init__(self, filename: str, file_bytes: bytes):
+        self.filename = filename
+        self.file_bytes = file_bytes
+        self.df: pd.DataFrame | None = None
+
+    def _ensure_loaded(self):
+        if self.df is None:
+            raise RuntimeError("Dataset not loaded. Call load() first.")
 
     def load(self) -> pd.DataFrame:
         """
-        Loads the dataset from the file path based on extension.
+        Load dataset from in-memory bytes based on file extension.
         """
         try:
-            if self.file_path.endswith(".csv"):
-                self.df = pd.read_csv(self.file_path)
-            elif self.file_path.endswith(".tsv"):
-                self.df = pd.read_csv(self.file_path, sep="\t")
-            elif self.file_path.endswith(".xlsx") or self.file_path.endswith(".xls"):
-                self.df = pd.read_excel(self.file_path)
+            buffer = io.BytesIO(self.file_bytes)
+
+            if self.filename.endswith(".csv"):
+                self.df = pd.read_csv(buffer)
+
+            elif self.filename.endswith(".tsv"):
+                self.df = pd.read_csv(buffer, sep="\t")
+
+            elif self.filename.endswith((".xls", ".xlsx")):
+                self.df = pd.read_excel(buffer)
+
             else:
-                raise ValueError("Unsupported file type. Please upload CSV, TSV, or Excel.")
+                raise ValueError("Unsupported file type")
+
             return self.df
+
         except Exception as e:
             raise RuntimeError(f"Failed to load dataset: {e}")
-    
-    def head(self, n=5) -> dict:
-        """Returns the first n rows as a dictionary."""
-        if self.df is not None:
-            # Replace NaN with None for JSON compatibility
-            return self.df.head(n).where(pd.notnull(self.df), None).to_dict(orient='records')
-        return {}
-    
+
+    def head(self, n: int = 5) -> list[dict]:
+        self._ensure_loaded()
+        return (
+            self.df.head(n)
+            .where(pd.notnull(self.df), None)
+            .to_dict(orient="records")
+        )
+
     def describe(self) -> dict:
-        """Returns descriptive statistics."""
-        if self.df is not None:
-            return self.df.describe(include='all').where(pd.notnull(self.df), None).to_dict()
-        return {}
-    
-    def info(self) -> str:
-        """Returns the info summary as a string."""
-        if self.df is not None:
-            buffer = io.StringIO()
-            self.df.info(buf=buffer)
-            return buffer.getvalue()
-        return ""
+        self._ensure_loaded()
+
+        numeric = self.df.select_dtypes(include="number").describe()
+        categorical = self.df.select_dtypes(exclude="number").describe()
+
+        return {
+            "numeric": numeric.where(pd.notnull(numeric), None).to_dict(),
+            "categorical": categorical.where(pd.notnull(categorical), None).to_dict()
+        }
+
+    def info(self) -> dict:
+        self._ensure_loaded()
+
+        return {
+            "rows": int(self.df.shape[0]),
+            "columns": int(self.df.shape[1]),
+            "column_names": list(self.df.columns),
+            "dtypes": self.df.dtypes.astype(str).to_dict(),
+            "null_counts": self.df.isnull().sum().to_dict(),
+            "memory_usage_bytes": int(
+                self.df.memory_usage(deep=True).sum()
+            ),
+        }
+
+    def summary(self, head_rows: int = 5) -> dict:
+        return {
+            "head": self.head(head_rows),
+            "describe": self.describe(),
+            "info": self.info()
+        }
