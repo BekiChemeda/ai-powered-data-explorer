@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Data Explorer</title>
+    <style>
+        
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
+        button { cursor: pointer; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+        img { max-width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <header>
+    <h1>Explore Your Data </h1>
+    </header>
+
+    <div class="section">
+        <h2>1. Upload Dataset</h2>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload</button>
+        <p id="uploadStatus"></p>
+    </div>
+
+    <div class="section" id="actions" style="display:none;">
+        <h2>2. Actions</h2>
+        <p>File ID: <span id="fileIdDisplay"></span></p>
+        
+        <button onclick="getProfile()">Get Profile</button>
+        <button onclick="getSummary()">Get AI Summary</button>
+        
+        <h3>Visualizations</h3>
+        <select id="chartType">
+            <option value="histogram">Histogram</option>
+            <option value="bar">Bar Chart</option>
+            <option value="correlation">Correlation Heatmap</option>
+        </select>
+        <input type="text" id="columnName" placeholder="Column Name (for hist/bar)">
+        <button onclick="getVisualization()">Visualize</button>
+    </div>
+
+    <div class="section" id="results">
+        <h2>Results</h2>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        let currentFileId = null;
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert("Please select a file");
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    currentFileId = data.file_id;
+                    document.getElementById('uploadStatus').innerText = "Upload successful!";
+                    document.getElementById('fileIdDisplay').innerText = currentFileId;
+                    document.getElementById('actions').style.display = 'block';
+                } else {
+                    alert("Upload failed: " + data.detail);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Error uploading file");
+            }
+        }
+
+        async function getProfile() {
+            if (!currentFileId) return;
+            const response = await fetch(`/api/profile/${currentFileId}`);
+            const data = await response.json();
+            document.getElementById('output').innerHTML = "<h3>Profile</h3><pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        }
+
+        async function getSummary() {
+            if (!currentFileId) return;
+            document.getElementById('output').innerHTML = "<h3>Generating Summary...</h3>";
+            const response = await fetch(`/api/summarize/${currentFileId}`);
+            const data = await response.json();
+            document.getElementById('output').innerHTML = "<h3>AI Summary</h3><p>" + data.summary + "</p>";
+        }
+
+        async function getVisualization() {
+            if (!currentFileId) return;
+            const type = document.getElementById('chartType').value;
+            const col = document.getElementById('columnName').value;
+            
+            let url = `/api/visualize/${currentFileId}?chart_type=${type}`;
+            if (type !== 'correlation') {
+                if (!col) return alert("Please enter a column name");
+                url += `&column=${col}`;
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('output').innerHTML = `<h3>Visualization</h3><img src="data:image/png;base64,${data.image_base64}" />`;
+            } else {
+                alert("Error: " + data.detail);
+            }
+        }
+    </script>
+</body>
+</html>
