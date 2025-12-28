@@ -1,36 +1,29 @@
 import pandas as pd
 import io
 
-
 class Dataset:
     """
-    Supports CSV, TSV, and Excel files.
+    Responsible for loading and basic inspection of tabular datasets.
     """
 
-    def __init__(self, filename: str, file_bytes: bytes):
-        self.filename = filename
-        self.file_bytes = file_bytes
+    def __init__(self, file_path: str):
+        self.file_path = file_path
         self.df: pd.DataFrame | None = None
 
-    def _ensure_loaded(self):
-        if self.df is None:
-            raise RuntimeError("Dataset not loaded. Call load() first.")
 
     def load(self) -> pd.DataFrame:
         """
-        Load dataset from in-memory bytes based on file extension.
+        Loads the dataset into memory based on file extension.
         """
         try:
-            buffer = io.BytesIO(self.file_bytes)
+            if self.file_path.endswith(".csv"):
+                self.df = pd.read_csv(self.file_path)
 
-            if self.filename.endswith(".csv"):
-                self.df = pd.read_csv(buffer)
+            elif self.file_path.endswith(".tsv"):
+                self.df = pd.read_csv(self.file_path, sep="\t")
 
-            elif self.filename.endswith(".tsv"):
-                self.df = pd.read_csv(buffer, sep="\t")
-
-            elif self.filename.endswith((".xls", ".xlsx")):
-                self.df = pd.read_excel(buffer)
+            elif self.file_path.endswith(".xlsx") or self.file_path.endswith(".xls"):
+                self.df = pd.read_excel(self.file_path)
 
             else:
                 raise ValueError("Unsupported file type")
@@ -40,42 +33,32 @@ class Dataset:
         except Exception as e:
             raise RuntimeError(f"Failed to load dataset: {e}")
 
+
     def head(self, n: int = 5) -> list[dict]:
-        self._ensure_loaded()
+        """
+        Returns the first n rows as JSON-serializable records.
+        """
+        if self.df is None:
+            raise RuntimeError("Dataset not loaded")
+
         return (
-            self.df.head(n)
+            self.df
+            .head(n)
             .where(pd.notnull(self.df), None)
             .to_dict(orient="records")
         )
 
     def describe(self) -> dict:
-        self._ensure_loaded()
+        """
+        Returns descriptive statistics for all columns.
+        """
+        if self.df is None:
+            raise RuntimeError("Dataset not loaded")
 
-        numeric = self.df.select_dtypes(include="number").describe()
-        categorical = self.df.select_dtypes(exclude="number").describe()
+        return (
+            self.df
+            .describe(include="all")
+            .where(pd.notnull(self.df), None)
+            .to_dict()
+        )
 
-        return {
-            "numeric": numeric.where(pd.notnull(numeric), None).to_dict(),
-            "categorical": categorical.where(pd.notnull(categorical), None).to_dict()
-        }
-
-    def info(self) -> dict:
-        self._ensure_loaded()
-
-        return {
-            "rows": int(self.df.shape[0]),
-            "columns": int(self.df.shape[1]),
-            "column_names": list(self.df.columns),
-            "dtypes": self.df.dtypes.astype(str).to_dict(),
-            "null_counts": self.df.isnull().sum().to_dict(),
-            "memory_usage_bytes": int(
-                self.df.memory_usage(deep=True).sum()
-            ),
-        }
-
-    def summary(self, head_rows: int = 5) -> dict:
-        return {
-            "head": self.head(head_rows),
-            "describe": self.describe(),
-            "info": self.info()
-        }
