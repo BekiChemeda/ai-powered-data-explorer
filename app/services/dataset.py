@@ -50,15 +50,39 @@ class Dataset:
 
     def describe(self) -> dict:
         """
-        Returns descriptive statistics for all columns.
+        Returns descriptive statistics for all columns, handling numeric and non-numeric types.
+        """
+        numeric = self.df.describe()
+        categorical = self.df.describe(include=['object', 'category'])
+        return {
+            "numeric": numeric.where(pd.notnull(numeric), None).to_dict(),
+            "categorical": categorical.where(pd.notnull(categorical), None).to_dict()
+        }
+
+    def shape(self):
+        """
+        Returns shape of the dataset 
+        """ 
+        if self.df is None:
+            raise RuntimeError("Dataset Not loaded")
+        return (
+            self.df.shape
+        )
+    def columns(self) -> list[str]:
+        """
+        Returns list of column names.
         """
         if self.df is None:
             raise RuntimeError("Dataset not loaded")
 
-        return (
-            self.df
-            .describe(include="all")
-            .where(pd.notnull(self.df), None)
-            .to_dict()
-        )
+        return self.df.columns.tolist()
+    def info(self) -> str:
+        """
+        Returns a summary of the DataFrame.
+        """
+        if self.df is None:
+            raise RuntimeError("Dataset not loaded")
 
+        buffer = io.StringIO()
+        self.df.info(buf=buffer)
+        return buffer.getvalue()
