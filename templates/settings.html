@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - AI Data Explorer{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h1 class="card-title">Settings</h1>
+    
+    <div style="margin-bottom: 2rem;">
+        <h3>Gemini API Key</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem;">
+            Enter your Google Gemini API Key. It will be encrypted and stored securely in the database. 
+            We will make a test call to validate it.
+        </p>
+        
+        <input type="password" id="gemini-key" placeholder="Enter API Key" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 4px;">
+        <button class="btn" onclick="saveKey('gemini')">Save & Validate</button>
+        <p id="gemini-status" style="margin-top: 0.5rem; font-weight: 500;"></p>
+    </div>
+</div>
+
+<script>
+    async function saveKey(provider) {
+        const key = document.getElementById(`${provider}-key`).value;
+        const status = document.getElementById(`${provider}-status`);
+        
+        if (!key) {
+            alert("Please enter a key");
+            return;
+        }
+        
+        status.innerText = "Validating & Saving...";
+        status.style.color = "blue";
+        
+        try {
+            const res = await fetch('/api/settings/key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider: provider, key: key })
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                status.innerText = "✅ Saved Successfully!";
+                status.style.color = "green";
+                document.getElementById(`${provider}-key`).value = ""; // Clear input for security
+            } else {
+                throw new Error(data.detail);
+            }
+        } catch (e) {
+            status.innerText = "❌ Error: " + e.message;
+            status.style.color = "red";
+        }
+    }
+    
+    // Check if key exists on load
+    async function checkKeys() {
+        try {
+            const res = await fetch('/api/settings/has_key/gemini');
+            const data = await res.json();
+            if (data.exists) {
+                document.getElementById('gemini-status').innerText = "✅ Key is currently set";
+                document.getElementById('gemini-status').style.color = "green";
+            }
+        } catch (e) {}
+    }
+    checkKeys();
+</script>
+{% endblock %}

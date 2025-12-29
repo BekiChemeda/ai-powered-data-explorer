@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-multipart
+pandas
+numpy
+matplotlib
+seaborn
+openpyxl
+sqlalchemy
+jinja2
+requests
+httpx
+google-generativeai
+google-genai
+openai

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}My Files - AI Data Explorer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="card-title">My Files</h1>
+    <div id="files-list" class="grid-3">
+        Loading files...
+    </div>
+</div>
+
+<script>
+    async function loadFiles() {
+        try {
+            const res = await fetch('/api/files/list');
+            const files = await res.json();
+            
+            const container = document.getElementById('files-list');
+            container.innerHTML = '';
+            
+            if (files.length === 0) {
+                container.innerHTML = '<p>No files uploaded yet. <a href="/upload">Upload one now</a>.</p>';
+                return;
+            }
+            
+            files.forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.style.marginBottom = '0';
+                div.innerHTML = `
+                    <h3 style="margin-top:0">${file.name}</h3>
+                    <p style="color:var(--text-muted); font-size: 0.9rem;">${file.filename}</p>
+                    <p style="color:var(--text-muted); font-size: 0.8rem;">${new Date(file.date).toLocaleDateString()}</p>
+                    <a href="/results?session_id=${file.session_id}" class="btn" style="display:block; text-align:center; margin-top:1rem;">Analyze</a>
+                `;
+                container.appendChild(div);
+            });
+        } catch (e) {
+            document.getElementById('files-list').innerHTML = `<p style="color:red">Error loading files: ${e.message}</p>`;
+        }
+    }
+    loadFiles();
+</script>
+{% endblock %}

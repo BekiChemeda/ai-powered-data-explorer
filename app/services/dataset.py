@@ -1,64 +1,61 @@
 import pandas as pd
 import io
+import os
+from app.utils_json import clean_for_json
 
 class Dataset:
     """
-    Responsible for loading and basic inspection of tabular datasets.
+    Handles loading and basic operations on datasets.
+    Supports CSV, TSV, Excel.
     """
+    def __init__(self, file_content: bytes, filename: str):
+        self.filename = filename
+        self.df = self._load_data(file_content, filename)
 
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.df: pd.DataFrame | None = None
-
-
-    def load(self) -> pd.DataFrame:
-        """
-        Loads the dataset into memory based on file extension.
-        """
+    def _load_data(self, content: bytes, filename: str) -> pd.DataFrame:
+        """Loads data into a pandas DataFrame based on file extension."""
+        filename = filename.lower()
         try:
-            if self.file_path.endswith(".csv"):
-                self.df = pd.read_csv(self.file_path)
-
-            elif self.file_path.endswith(".tsv"):
-                self.df = pd.read_csv(self.file_path, sep="\t")
-
-            elif self.file_path.endswith(".xlsx") or self.file_path.endswith(".xls"):
-                self.df = pd.read_excel(self.file_path)
-
+            if filename.endswith('.csv'):
+                return pd.read_csv(io.BytesIO(content))
+            elif filename.endswith('.tsv'):
+                return pd.read_csv(io.BytesIO(content), sep='\t')
+            elif filename.endswith(('.xls', '.xlsx')):
+                return pd.read_excel(io.BytesIO(content))
+            # Basic basic SQL support if uploaded as .db (sqlite)
+            # This is risky/complex for web upload generally without a specialized UI, 
+            # so we'll stick to file-based formats for this implementation as per standard user flows.
             else:
-                raise ValueError("Unsupported file type")
-
-            return self.df
-
+                raise ValueError(f"Unsupported file format: {filename}")
         except Exception as e:
-            raise RuntimeError(f"Failed to load dataset: {e}")
+            raise ValueError(f"Error loading file: {str(e)}")
 
+    def get_head(self, n: int = 5) -> list[dict]:
+        """Returns the first n rows as a list of dictionaries (JSON-ready)."""
+        data = self.df.head(n).to_dict(orient='records')
+        return clean_for_json(data)
 
-    def head(self, n: int = 5) -> list[dict]:
-        """
-        Returns the first n rows as JSON-serializable records.
-        """
-        if self.df is None:
-            raise RuntimeError("Dataset not loaded")
+    def get_info(self) -> dict:
+        """Returns dataset metadata."""
+        buffer = io.StringIO()
+        self.df.info(buf=buffer)
+        info_str = buffer.getvalue()
+        
+        info_data = {
+            "rows": self.df.shape[0],
+            "columns": self.df.shape[1],
+            "column_names": self.df.columns.tolist(),
+            "memory_usage": self.df.memory_usage(deep=True).sum(),
+            "dtypes": self.df.dtypes.astype(str).to_dict(),
+            "raw_info": info_str # For display if needed
+        }
+        return clean_for_json(info_data)
 
-        return (
-            self.df
-            .head(n)
-            .where(pd.notnull(self.df), None)
-            .to_dict(orient="records")
-        )
+    def get_columns(self) -> list:
+        return self.df.columns.tolist()
+        
+    def get_shape(self) -> tuple:
+        return self.df.shape
 
-    def describe(self) -> dict:
-        """
-        Returns descriptive statistics for all columns.
-        """
-        if self.df is None:
-            raise RuntimeError("Dataset not loaded")
-
-        return (
-            self.df
-            .describe(include="all")
-            .where(pd.notnull(self.df), None)
-            .to_dict()
-        )
-
+    def get_dataframe(self) -> pd.DataFrame:
+        return self.df

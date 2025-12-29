@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}AI Data Explorer{% endblock %}
+
+{% block head %}
+<style>
+    .hero {
+        text-align: center;
+        padding: 6rem 1rem;
+        background: linear-gradient(to bottom right, #ffffff, #f3f4f6);
+    }
+    .hero h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #111827;
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+    }
+    .hero p {
+        font-size: 1.25rem;
+        color: #4b5563;
+        max-width: 700px;
+        margin: 0 auto 3rem auto;
+    }
+    .cta-button {
+        display: inline-block;
+        background-color: var(--primary);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 1.125rem;
+        text-decoration: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+    }
+    .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        background-color: var(--primary-hover);
+    }
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 4rem 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+    }
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .feature-title {
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+    .feature-desc {
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Unlock Insights from <br><span style="color: var(--primary);">Your Data</span> in Seconds</h1>
+    <p>Instantly analyze CSVs, Excel, and more. Get descriptive statistics, beautiful visualizations, and AI-powered insights powered by Gemini.</p>
+    <a href="/upload" class="cta-button">Start Exploring Now &rarr;</a>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Instant Profiling</div>
+        <div class="feature-desc">Upload your file and immediately gaze upon comprehensive stats, missing value reports, and data types.</div>
+    </div>
+    <div class="feature-card">
+        <span class="feature-icon">📈</span>
+        <div class="feature-title">Auto-Visualization</div>
+        <div class="feature-desc">We automatically generate distributions, correlations, and categorical charts so you don't have to code.</div>
+    </div>
+    <div class="feature-card">
+        <span class="feature-icon">✨</span>
+        <div class="feature-title">AI Powered</div>
+        <div class="feature-desc">Stuck? Ask our AI to explain charts, summarize findings, and suggest next steps for your analysis.</div>
+    </div>
+</div>
+{% endblock %}

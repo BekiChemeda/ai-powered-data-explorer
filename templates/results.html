@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Results - AI Data Explorer{% endblock %}
+
+{% block content %}
+<!-- AI Summary Section -->
+<div class="card">
+    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>✨ AI Insights</span>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="password" id="api-key" placeholder="Enter Key (Optional if Saved)"
+                style="padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; width: 220px;">
+            <button class="btn" onclick="generateSummary()">Generate</button>
+        </div>
+    </div>
+    <div id="ai-loading" class="loader"></div>
+    <div id="ai-content" style="line-height: 1.6;">
+        <p style="color: var(--text-muted); font-style: italic;">
+            Click "Generate" to analyze. If you saved your API key in Settings, you don't need to enter it here.
+        </p>
+    </div>
+</div>
+
+<!-- Overview Section -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-title">Dataset Info</div>
+        <div id="info-container">Loading...</div>
+    </div>
+    <div class="card">
+        <div class="card-title" style="display: flex; justify-content: space-between;">
+            Missing Values
+            <button class="ai-btn" onclick="analyzeSection('missing', 'missing-values-ai')"
+                title="Ask AI about missing data">✨</button>
+        </div>
+        <div id="missing-container">Loading...</div>
+        <div id="missing-values-ai" class="ai-summary-box"></div>
+    </div>
+</div>
+
+<!-- Data Head -->
+<div class="card">
+    <div class="card-title">Sample Data (First 5 Rows)</div>
+    <div class="table-container" id="head-container">Loading...</div>
+</div>
+
+<!-- Descriptive Stats -->
+<div class="card">
+    <div class="card-title" style="display: flex; justify-content: space-between;">
+        Descriptive Statistics
+        <button class="ai-btn" onclick="analyzeSection('stats', 'stats-ai')" title="Analyze Statistics">✨</button>
+    </div>
+    <div class="table-container" id="stats-container">Loading...</div>
+    <div id="stats-ai" class="ai-summary-box"></div>
+</div>
+
+<!-- Visualizations -->
+<h2>Visualizations</h2>
+<div id="viz-container" class="grid-3" style="margin-top: 1rem;">
+    Loading charts...
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // On load, get session ID from URL or Storage
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+
+    if (!sessionId) {
+        alert("No session found. Redirecting to upload.");
+        window.location.href = "/upload";
+    } else {
+        loadDashboard(sessionId);
+    }
+</script>
+{% endblock %}
