@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import Dict, Any
+from app.services.dataset import Dataset
 
 class Profiler:
     """
