@@ -1,138 +1,69 @@
-![Status: In Progress](https://img.shields.io/badge/status-in%20progress-yellow)
-
 # AI-Powered Data Exploration Web App
 
-🚧 **Project Status: Actively Under Development**
+A self-hosted, full-stack web application designed for interactive data exploration. Upload datasets, generate stats/visualizations automatically, and get AI-powered insights using Google Gemini or OpenAI.
 
-This project is currently being built and refactored incrementally. Features, architecture, and documentation may evolve as development progresses.
+## Features
+- **Easy Upload**: Drag-and-drop CSV, Excel, or TSV files.
+- **Automated Profiling**: Instantly view `head()`, missing values, descriptive statistics, and correlation matrices.
+- **Visualizations**: Auto-generated histograms, boxplots, and heatmaps using Seaborn/Matplotlib.
+- **AI Integration**: Enter your API key (Gemini supported by default) to get a natural language summary and insights about your data.
+- **Responsive UI**: Clean, modern interface built with HTML5, CSS3, and minimal Vanilla JS.
 
----
+## Project Structure
+```
+/
+├── app/                # Backend Source Code
+│   ├── main.py         # FastAPI Entry Point
+│   ├── services/       # Business Logic (Dataset, Profiler, AI)
+│   ├── routers/        # API Endpoints
+│   └── schemas/        # Pydantic Models
+├── static/             # Frontend Assets (CSS, JS)
+├── templates/          # HTML Templates (Jinja2)
+├── Dockerfile          # Container Config
+└── requirements.txt    # Python Dependencies
+```
 
-## Overview
+## Getting Started
 
-This is an **AI-powered data exploration and visualization web application** that helps users quickly understand structured datasets.
+### Prerequisites
+- Python 3.9+
+- A Google Gemini API Key (for AI features) [Get one here](https://aistudio.google.com/app/apikey)
 
-Users can upload datasets (CSV, TSV, Excel, and SQL sources) through a web interface and instantly receive:
+### Local Installation
+1. **Clone the repository** (if using git) or download the source.
+2. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Run the Server**:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+4. **Access the App**:
+   Open browser to `http://127.0.0.1:8000`
 
-* Dataset previews (`head(n)`)
-* Structural information (`info()`)
-* Descriptive statistics (`describe()`)
-* Automated visualizations
-* AI-generated summaries explaining data quality, types, and issues
-
-The goal is to reduce the time it takes to move from *raw data* to *understanding*.
-
----
-
-## Key Features
-
-* 📂 Upload CSV, TSV, and Excel files
-* 🔍 Automatic data profiling (missing values, data types, stats)
-* 📊 Dynamic visualizations based on column types
-* 🤖 AI-powered dataset summarization (grounded in real statistics)
-* 🧱 Clean OOP-based backend architecture
-* 🌐 Web-based interface (not API-only)
-* 🐳 Local-first deployment (Docker-ready)
-
----
+### Docker Deployment
+1. **Build the Image**:
+   ```bash
+   docker build -t ai-data-explorer .
+   ```
+2. **Run the Container**:
+   ```bash
+   docker run -p 8000:8000 ai-data-explorer
+   ```
+   
+## Usage Guide
+1. **Home Page**: Upload your dataset file.
+2. **Dashboard**: 
+   - Review the "Dataset Info" and "Missing Values".
+   - Explore the "Descriptive Statistics" table.
+   - Analyze the generated Visualizations.
+3. **AI Insights**:
+   - Locate the "✨ AI Insights" card at the top.
+   - Enter your Gemini API Key.
+   - Click "Generate" to receive a comprehensive analysis.
 
 ## Tech Stack
-
-**Backend**
-
-* Python
-* FastAPI
-* Pandas, NumPy
-* Uvicorn
-
-**Frontend**
-
-* HTML, CSS
-* Minimal JavaScript
-
-**Tooling**
-
-* uv (dependency management)
-* Git & GitHub
-
----
-
-## Installation (Local Development)
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/ai-powered-data-explorer.git
-cd ai-powered-data-explorer
-
-# Install dependencies
-uv sync
-
-# Run the app
-uv run main.py
-```
-
-Then open:
-
-```
-http://127.0.0.1:8000
-```
-
-For Documwentation, visit:
-
-```
-http://127.0.0.1:8000/docs
-```
----
-
-## Why This Project Exists
-
-Exploratory Data Analysis (EDA) is often repetitive and time-consuming. This project automates the most common EDA steps while keeping results explainable and grounded in real statistics.
-
-It is designed as a **learning-focused but production-minded** system, emphasizing:
-
-* clean architecture
-* reproducibility
-* explainability
-
----
-
-## Contributing
-
-Contributions are welcome — especially while the project is evolving.
-
-### How to contribute
-
-1. Fork the repository
-2. Create a new branch
-
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. Make your changes with clear commits
-4. Open a Pull Request describing **what** and **why**
-
-### Guidelines
-
-* Follow existing code structure
-* Write clear commit messages
-* Keep changes focused and incremental
-
----
-
-## Roadmap (High-Level)
-
-* [ ] User authentication & saved datasets
-* [ ] Advanced visualizations
-* [ ] Dataset comparison
-* [ ] Improved AI insights
-* [ ] Cloud deployment
-
----
-
-## License
-
-This project is open source and available under the MIT License.
-
----
-
-**Author:** Beknan Chemeda
+- **Backend**: FastAPI, Pandas, Matplotlib, Seaborn
+- **Frontend**: HTML, CSS, Vanilla JavaScript
+- **AI**: Google Generative AI (Gemini) SDK
