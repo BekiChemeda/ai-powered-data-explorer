@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Upload - AI Data Explorer{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; max-width: 600px; margin: 4rem auto;">
+    <h1 style="margin-bottom: 1rem;">Upload your Dataset</h1>
+    
+    <div style="text-align: left; margin-bottom: 1.5rem;">
+        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Session Name</label>
+        <input type="text" id="session-name" placeholder="E.g., Sales Data Q4" style="width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 0.5rem;">
+    </div>
+
+    <div class="upload-area" id="drop-zone">
+        <p>Drag & Drop your file here</p>
+        <p style="color: var(--text-muted); margin: 0.5rem 0;">or</p>
+        <input type="file" id="file-input" style="display: none;" accept=".csv,.tsv,.xls,.xlsx">
+        <button class="btn" onclick="document.getElementById('file-input').click()">Browse Files</button>
+    </div>
+    
+    <div id="loader" class="loader"></div>
+    <p id="error-message" style="color: red; margin-top: 1rem; display: none;"></p>
+</div>
+
+<script>
+    // Init Upload Logic specifically for this page
+    // Modified to use uploadFile with Session Name
+    
+    document.getElementById('file-input').addEventListener('change', function(e) {
+        if(e.target.files.length > 0) {
+            triggerUpload(e.target.files[0]);
+        }
+    });
+
+    const dz = document.getElementById('drop-zone');
+    dz.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dz.classList.add('dragover');
+    });
+    
+    dz.addEventListener('dragleave', () => {
+        dz.classList.remove('dragover');
+    });
+
+    dz.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dz.classList.remove('dragover');
+        if(e.dataTransfer.files.length > 0) {
+            triggerUpload(e.dataTransfer.files[0]);
+        }
+    });
+    
+    function triggerUpload(file) {
+        const name = document.getElementById('session-name').value.trim();
+        if (!name) {
+            alert("Please enter a Session Name before uploading.");
+            return;
+        }
+        uploadFile(file, name);
+    }
+</script>
+{% endblock %}
